@@ -8,7 +8,7 @@ GNU General Public License v3.0
 
 ### Usage
 
-`./tridecimator fileIn fileOut ratio [opt]`
+`./tridecimator src.obj dst.obj ratio [opt]`
 
 ratio is between 0.1 and 1.
 
