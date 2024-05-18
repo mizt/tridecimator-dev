@@ -43,7 +43,7 @@ ratio is between 0.1 and 1.
 	</tr>
 	<tr>
 		<td>-Q</td>
-		<td>Use or not Face Quality Threshold (default yes)</td>
+		<td>Use or not Face Quality Threshold (default no)</td>
 	</tr>
 	<tr>
 		<td>-H</td>
@@ -63,11 +63,11 @@ ratio is between 0.1 and 1.
 	</tr>
 	<tr>
 		<td>-O</td>
-		<td>Use or not vertex optimal placement (default yes)</td>
+		<td>Use or not vertex optimal placement (default no)</td>
 	</tr>
 	<tr>
 		<td>-S</td>
-		<td>Use or not Scale Independent quadric measure (default yes)</td>
+		<td>Use or not Scale Independent quadric measure (default no)</td>
 	</tr>
 	<tr>
 		<td>-B</td>
