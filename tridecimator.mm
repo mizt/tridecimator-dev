@@ -191,7 +191,9 @@ int main(int argc ,char**argv)
   int t3=clock();
   printf("mesh  %d %d Error %g \n",mesh.vn,mesh.fn,DeciSession.currMetric);
   printf("\nCompleted in (%5.3f+%5.3f) sec\n",float(t2-t1)/CLOCKS_PER_SEC,float(t3-t2)/CLOCKS_PER_SEC);
-  vcg::tri::io::ExporterPLY<MyMesh>::Save(mesh,argv[2]);
-    return 0;
-
+  unsigned int mask = 0;
+  mask |= vcg::tri::io::Mask::IOM_VERTCOORD;
+  mask |= vcg::tri::io::Mask::IOM_FACEINDEX;
+  vcg::tri::io::ExporterOBJ<MyMesh>::Save(mesh,argv[2],mask);
+  return 0;
 }
