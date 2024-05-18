@@ -8,7 +8,7 @@ GNU General Public License v3.0
 
 ### Usage
 
-`./tridecimator fileIn fileOut face_num [opt]`
+`./tridecimator fileIn fileOut ratio [opt]`
 
 <table>
 	<tr>

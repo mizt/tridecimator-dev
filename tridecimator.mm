@@ -68,15 +68,15 @@ int main(int argc, char *argv[]) {
   if(argc<4) Usage();
 
   MyMesh mesh;
-  
-  int FinalSize=atoi(argv[3]);
   int err = vcg::tri::io::Importer<MyMesh>::Open(mesh,argv[1]);
   if(err) {
     printf("Unable to open mesh %s : '%s'\n",argv[1],vcg::tri::io::Importer<MyMesh>::ErrorMsg(err));
     exit(-1);
   }
   printf("mesh loaded %d %d \n",mesh.vn,mesh.fn);
-
+  
+  int FinalSize=mesh.fn*atof(argv[3]);
+  
   double TargetError = std::numeric_limits<double >::max();
   bool CleaningFlag = false;
   
@@ -203,13 +203,13 @@ int main(int argc, char *argv[]) {
   DeciSession.SetTargetOperations(100000);
   if(TargetError< std::numeric_limits<float>::max()) DeciSession.SetTargetMetric(TargetError);
 
-  while(DeciSession.DoOptimization() && mesh.fn>FinalSize && DeciSession.currMetric < TargetError) {
+  while(DeciSession.DoOptimization()&&mesh.fn>FinalSize&&DeciSession.currMetric<TargetError) {
     printf("Current Mesh size %7i heap sz %9i err %9g \n",mesh.fn, int(DeciSession.h.size()),DeciSession.currMetric);
   }
   
   int t3 = clock();
   printf("mesh %d %d Error %g \n",mesh.vn,mesh.fn,DeciSession.currMetric);
-  printf("\nCompleted in (%5.3f+%5.3f) sec\n",float(t2-t1)/CLOCKS_PER_SEC,float(t3-t2)/CLOCKS_PER_SEC);
+  printf("Completed in (%5.3f+%5.3f) sec\n",float(t2-t1)/CLOCKS_PER_SEC,float(t3-t2)/CLOCKS_PER_SEC);
   unsigned int mask = 0;
   mask|=vcg::tri::io::Mask::IOM_VERTCOORD;
   mask|=vcg::tri::io::Mask::IOM_FACEINDEX;
