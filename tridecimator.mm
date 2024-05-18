@@ -75,9 +75,12 @@ int main(int argc, char *argv[]) {
   }
   printf("mesh loaded %d %d \n",mesh.vn,mesh.fn);
   
-  int FinalSize=mesh.fn*atof(argv[3]);
+  float ratio = atof(argv[3]);
+  if(ratio>=1.0) ratio = 1.0;
+  else if(ratio<=0.1) ratio = 0.1;
+  int FinalSize=mesh.fn*ratio;
   
-  double TargetError = std::numeric_limits<double >::max();
+  double TargetError = std::numeric_limits<double>::max();
   bool CleaningFlag = false;
   
   TriEdgeCollapseQuadricParameter qparams;
