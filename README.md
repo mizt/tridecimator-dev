@@ -40,43 +40,43 @@ GNU General Public License v3.0
 		<td>Minimal admitted quadric value (default 1e-15, must be >0)</td>
 	</tr>
 	<tr>
-		<td>-Q[y|n]</td>
+		<td>-Q</td>
 		<td>Use or not Face Quality Threshold (default yes)</td>
 	</tr>
 	<tr>
-		<td>-H[y|n]</td>
+		<td>-H</td>
 		<td>Use or not HardQualityCheck (default no)</td>
 	</tr>
 	<tr>
-		<td>-N[y|n]</td>
+		<td>-N</td>
 		<td>Use or not Face Normal Threshold (default no)</td>
 	</tr>
 	<tr>
-		<td>-P[y|n]</td>
+		<td>-P</td>
 		<td>Add or not QualityQuadric (default no)</td>
 	</tr>
 	<tr>
-		<td>-A[y|n]</td>
+		<td>-A</td>
 		<td>Use or not Area Checking (default no)</td>
 	</tr>
 	<tr>
-		<td>-O[y|n]</td>
+		<td>-O</td>
 		<td>Use or not vertex optimal placement (default yes)</td>
 	</tr>
 	<tr>
-		<td>-S[y|n]</td>
+		<td>-S</td>
 		<td>Use or not Scale Independent quadric measure (default yes)</td>
 	</tr>
 	<tr>
-		<td>-B[y|n]</td>
+		<td>-B</td>
 		<td>Preserve or not mesh boundary (default no)</td>
 	</tr>
 	<tr>
-		<td>-T[y|n]</td>
+		<td>-T</td>
 		<td>Preserve or not Topology (default no)</td>
 	</tr>
 	<tr>
-		<td>-W[y|n]</td>
+		<td>-W</td>
 		<td>Use or not per vertex Quality to weight the quadric error (default no)</td>
 	</tr>
 	<tr>
