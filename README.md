@@ -43,43 +43,43 @@ ratio is between 0.1 and 1.
 	</tr>
 	<tr>
 		<td>-Q</td>
-		<td>Use or not Face Quality Threshold (default no)</td>
+		<td>Use or not Face Quality Threshold</td>
 	</tr>
 	<tr>
 		<td>-H</td>
-		<td>Use or not HardQualityCheck (default no)</td>
+		<td>Use or not HardQualityCheck</td>
 	</tr>
 	<tr>
 		<td>-N</td>
-		<td>Use or not Face Normal Threshold (default no)</td>
+		<td>Use or not Face Normal Threshold</td>
 	</tr>
 	<tr>
 		<td>-P</td>
-		<td>Add or not QualityQuadric (default no)</td>
+		<td>Add or not QualityQuadric</td>
 	</tr>
 	<tr>
 		<td>-A</td>
-		<td>Use or not Area Checking (default no)</td>
+		<td>Use or not Area Checking</td>
 	</tr>
 	<tr>
 		<td>-O</td>
-		<td>Use or not vertex optimal placement (default no)</td>
+		<td>Use or not vertex optimal placement</td>
 	</tr>
 	<tr>
 		<td>-S</td>
-		<td>Use or not Scale Independent quadric measure (default no)</td>
+		<td>Use or not Scale Independent quadric measure</td>
 	</tr>
 	<tr>
 		<td>-B</td>
-		<td>Preserve or not mesh boundary (default no)</td>
+		<td>Preserve or not mesh boundary</td>
 	</tr>
 	<tr>
 		<td>-T</td>
-		<td>Preserve or not Topology (default no)</td>
+		<td>Preserve or not Topology</td>
 	</tr>
 	<tr>
 		<td>-W</td>
-		<td>Use or not per vertex Quality to weight the quadric error (default no)</td>
+		<td>Use or not per vertex Quality to weight the quadric error</td>
 	</tr>
 	<tr>
 		<td>-C</td>
