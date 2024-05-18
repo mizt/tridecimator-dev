@@ -65,7 +65,6 @@ Initial Update
 #define __VCGLIB_IMPORT
 
 #include <wrap/io_trimesh/import_obj.h>
-#include <wrap/io_trimesh/import_ply.h>
 
 #include <locale>
 
@@ -82,7 +81,7 @@ template <class OpenMeshType>
 class Importer
 {
 private:
-  enum KnownTypes { KT_UNKNOWN, KT_PLY, KT_OBJ };
+  enum KnownTypes { KT_UNKNOWN, KT_OBJ };
 static int &LastType()
 {
   static int lastType= KT_UNKNOWN;
@@ -117,11 +116,6 @@ static int Open(OpenMeshType &m, const char *filename, int &loadmask, CallBackPo
 		err = -1;
 		LastType()=KT_UNKNOWN;
 	}
-	else if(FileExtension(filename,"ply"))
-	{
-		err = ImporterPLY<OpenMeshType>::Open(m, filename, loadmask, cb);
-		LastType()=KT_PLY;
-	}
 	else if(FileExtension(filename,"obj"))
 	{
 		err = ImporterOBJ<OpenMeshType>::Open(m, filename, loadmask, cb);
@@ -139,7 +133,6 @@ static bool ErrorCritical(int error)
 {
   switch(LastType())
   {
-    case KT_PLY : return ImporterPLY<OpenMeshType>::ErrorCritical(error); break;
     case KT_OBJ : return ImporterOBJ<OpenMeshType>::ErrorCritical(error); break;
   }
 
@@ -150,7 +143,6 @@ static const char *ErrorMsg(int error)
 {
   switch(LastType())
   {
-    case KT_PLY : return ImporterPLY<OpenMeshType>::ErrorMsg(error); break;
     case KT_OBJ : return ImporterOBJ<OpenMeshType>::ErrorMsg(error); break;
   }
   return "Unknown type";
@@ -160,12 +152,7 @@ static bool LoadMask(const char * filename, int &mask)
 {
 	bool err;
 
-	if(FileExtension(filename,"ply"))
-	{
-		err = ImporterPLY<OpenMeshType>::LoadMask(filename, mask);
-		LastType()=KT_PLY;
-	}
-	else if(FileExtension(filename,"obj"))
+	if(FileExtension(filename,"obj"))
 	{
 		err = ImporterOBJ<OpenMeshType>::LoadMask(filename, mask);
 		LastType()=KT_OBJ;

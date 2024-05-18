@@ -4,11 +4,12 @@
 // io
 #include <wrap/io_trimesh/import.h>
 #include <wrap/io_trimesh/export_obj.h>
-#include <wrap/io_trimesh/export_ply.h>
 
 // local optimization
 #include <vcg/complex/algorithms/local_optimization.h>
 #include <vcg/complex/algorithms/local_optimization/tri_edge_collapse_quadric.h>
+
+#include <vcg/complex/algorithms/clean.h>
 
 using namespace vcg;
 using namespace tri;
@@ -59,7 +60,6 @@ class MyFace : public Face< MyUsedTypes,
 // the main mesh class
 class MyMesh : public vcg::tri::TriMesh<std::vector<MyVertex>, std::vector<MyFace> > {};
 
-
 class MyTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric< MyMesh, VertexPair, MyTriEdgeCollapse, QInfoStandard<MyVertex>  > {
             public:
             typedef  vcg::tri::TriEdgeCollapseQuadric< MyMesh,  VertexPair, MyTriEdgeCollapse, QInfoStandard<MyVertex>  > TECQ;
@@ -67,8 +67,7 @@ class MyTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric< MyMesh, Vertex
             inline MyTriEdgeCollapse(  const VertexPair &p, int i, BaseParameterClass *pp) :TECQ(p,i,pp){}
 };
 
-void Usage()
-{
+void Usage() {
     printf(
           "---------------------------------\n"
           "        TriDecimator 1.0 \n"
@@ -101,8 +100,7 @@ void Usage()
   exit(-1);
 }
 
-int main(int argc ,char**argv)
-{
+int main(int argc ,char**argv) {
   if(argc<4) Usage();
 
   MyMesh mesh;
@@ -120,12 +118,11 @@ int main(int argc ,char**argv)
   qparams.QualityThr  =.3;
   double TargetError=std::numeric_limits<double >::max();
   bool CleaningFlag =false;
-     // parse command line.
-    for(int i=4; i < argc;)
-    {
-      if(argv[i][0]=='-')
-        switch(argv[i][1])
-      {
+  
+  // parse command line.
+  for(int i=4; i < argc;) {
+    if(argv[i][0]=='-')
+      switch(argv[i][1]) {
         case 'Q' : if(argv[i][2]=='y') { qparams.QualityCheck     = true;  printf("Using Quality Checking\n"); }
                                   else { qparams.QualityCheck     = false; printf("NOT Using Quality Checking\n"); }          break;
         case 'H' : if(argv[i][2]=='y') { qparams.HardQualityCheck = true;  printf("Using HardQualityCheck Checking\n");	}
@@ -159,15 +156,15 @@ int main(int argc ,char**argv)
         default  :  printf("Unknown option '%s'\n", argv[i]);
           exit(0);
       }
-      i++;
-    }
-
+    i++;
+  }
+  
   if(CleaningFlag){
       int dup = tri::Clean<MyMesh>::RemoveDuplicateVertex(mesh);
       int unref = tri::Clean<MyMesh>::RemoveUnreferencedVertex(mesh);
       printf("Removed %i duplicate and %i unreferenced vertices from mesh \n",dup,unref);
   }
-
+  
   printf("reducing it to %i\n",FinalSize);
 
   vcg::tri::UpdateBounding<MyMesh>::Box(mesh);
@@ -192,8 +189,8 @@ int main(int argc ,char**argv)
   printf("mesh  %d %d Error %g \n",mesh.vn,mesh.fn,DeciSession.currMetric);
   printf("\nCompleted in (%5.3f+%5.3f) sec\n",float(t2-t1)/CLOCKS_PER_SEC,float(t3-t2)/CLOCKS_PER_SEC);
   unsigned int mask = 0;
-  mask |= vcg::tri::io::Mask::IOM_VERTCOORD;
-  mask |= vcg::tri::io::Mask::IOM_FACEINDEX;
+  mask|=vcg::tri::io::Mask::IOM_VERTCOORD;
+  mask|=vcg::tri::io::Mask::IOM_FACEINDEX;
   vcg::tri::io::ExporterOBJ<MyMesh>::Save(mesh,argv[2],mask);
   return 0;
 }
