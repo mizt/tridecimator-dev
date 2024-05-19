@@ -34,24 +34,24 @@ class MyFace;
 
 struct MyUsedTypes: public vcg::UsedTypes<vcg::Use<MyVertex>::AsVertexType,vcg::Use<MyEdge>::AsEdgeType,vcg::Use<MyFace>::AsFaceType> {};
 
-class MyVertex : public vcg::Vertex<MyUsedTypes, vcg::vertex::VFAdj, vcg::vertex::Coord3f, vcg::vertex::Mark, vcg::vertex::Qualityf, vcg::vertex::BitFlags> {
-  public:
-    vcg::math::Quadric<double> &Qd() { return q; }
+class MyVertex : public vcg::Vertex<MyUsedTypes,vcg::vertex::VFAdj,vcg::vertex::Coord3f,vcg::vertex::Mark,vcg::vertex::Qualityf,vcg::vertex::BitFlags> {
   private:
     vcg::math::Quadric<double> q;
+  public:
+      vcg::math::Quadric<double> &Qd() { return q; }
 };
 
 class MyEdge : public vcg::Edge< MyUsedTypes> {};
 
 typedef vcg::tri::BasicVertexPair<MyVertex> VertexPair;
-class MyFace : public vcg::Face<MyUsedTypes, vcg::face::VFAdj, vcg::face::VertexRef, vcg::face::BitFlags> {};
+class MyFace : public vcg::Face<MyUsedTypes, vcg::face::VFAdj,vcg::face::VertexRef,vcg::face::BitFlags> {};
 
 // the main mesh class
 class MyMesh : public vcg::tri::TriMesh<std::vector<MyVertex>,std::vector<MyFace>> {};
 
-class MyTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<MyMesh, VertexPair, MyTriEdgeCollapse, vcg::tri::QInfoStandard<MyVertex>> {
+class MyTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<MyMesh,VertexPair,MyTriEdgeCollapse,vcg::tri::QInfoStandard<MyVertex>> {
   public:
-    typedef vcg::tri::TriEdgeCollapseQuadric<MyMesh, VertexPair, MyTriEdgeCollapse, vcg::tri::QInfoStandard<MyVertex>> TECQ;
+    typedef vcg::tri::TriEdgeCollapseQuadric<MyMesh,VertexPair,MyTriEdgeCollapse,vcg::tri::QInfoStandard<MyVertex>> TECQ;
     typedef MyMesh::VertexType::EdgeType EdgeType;
     inline MyTriEdgeCollapse(const VertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp) {}
 };
@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
   DeciSession.SetTimeBudget(0.1f); // this allows updating the progress bar 10 time for sec...
   //DeciSession.SetTargetOperations(100000);
 
-  if(TargetError< std::numeric_limits<float>::max()) DeciSession.SetTargetMetric(TargetError);
+  if(TargetError<std::numeric_limits<float>::max()) DeciSession.SetTargetMetric(TargetError);
 
   while(DeciSession.DoOptimization()&&mesh.fn>TargetFaceNum&&DeciSession.currMetric<TargetError) {
     printf("Current Mesh size %7i heap sz %9i err %9g \n",mesh.fn, int(DeciSession.h.size()),DeciSession.currMetric);
