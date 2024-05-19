@@ -72,10 +72,10 @@ void tridecimator(std::vector<float> *v, std::vector<int> *f, NSString *params) 
     NSMutableDictionary *settings = [[NSMutableDictionary alloc] init];
     if(params) {
         settings = [NSJSONSerialization JSONObjectWithData:[[[NSRegularExpression regularExpressionWithPattern:@"(/\\*[\\s\\S]*?\\*/|//.*)" options:1 error:nil] stringByReplacingMatchesInString:params options:0 range:NSMakeRange(0,params.length) withTemplate:@""] dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:nil];
-        if(isNumber(settings[@"ratio"])) ratio = [settings[@"ratio"] floatValue];        
+        if(isNumber(settings[@"ratio"])) ratio = [settings[@"ratio"] floatValue];
     }
     
-    unsigned int TargetFaceNum = f->size()*ratio;
+    unsigned int TargetFaceNum = (f->size()/3.0)*ratio;
     
     if(VERBOSE) printf("mesh loaded %d %d \n",mesh.vn,mesh.fn);
     
