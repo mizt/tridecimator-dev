@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  CFBundleRef bundle = CFBundleCreate(kCFAllocatorDefault,(CFURLRef)[NSURL fileURLWithPath:@"../tridecimator.bundle"]);
+  CFBundleRef bundle = CFBundleCreate(kCFAllocatorDefault,(CFURLRef)[NSURL fileURLWithPath:@"../tridecimator.plugin"]);
   if(bundle) {
     //NSLog(@"%@",bundle);
     FILTER filter = (FILTER)CFBundleGetFunctionPointerForName(bundle,CFSTR("tridecimator"));
