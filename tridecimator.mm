@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  [obj writeToFile:@"./dst.obj" atomically:YES encoding:NSUTF8StringEncoding error:nil];
+  [obj writeToFile:[NSString stringWithFormat:@"%s",argv[2]] atomically:YES encoding:NSUTF8StringEncoding error:nil];
   
   return 0;
 }
