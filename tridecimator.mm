@@ -11,23 +11,6 @@
 
 #import <algorithm>
 
-
-/**********************************************************
-Mesh Classes for Quadric Edge collapse based simplification
-
-For edge collpases we need verteses with:
-- V->F adjacency
-- per vertex incremental mark
-- per vertex Normal
-
-
-Moreover for using a quadric based collapse the vertex class
-must have also a Quadric member Q();
-Otherwise the user have to provide an helper function object
-to recover the quadric.
-
-******************************************************/
-// The class prototypes.
 class MyVertex;
 class MyEdge;
 class MyFace;
@@ -56,55 +39,29 @@ class MyTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<MyMesh,VertexPa
     inline MyTriEdgeCollapse(const VertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp) {}
 };
 
-void Usage() {
-    printf("Usage: tridecimator fileIn fileOut ratio\n");
-    exit(-1);
-}
-
-int main(int argc, char *argv[]) {
+void tridecimator(std::vector<float> *v, std::vector<int> *f, unsigned int TargetFaceNum) {
   
-  if(argc<3) Usage();
-
   MyMesh mesh;
+  MyMesh::VertexIterator vit = vcg::tri::Allocator<MyMesh>::AddVertices(mesh,v->size()/3);
   
-  NSString *src = [NSString stringWithContentsOfFile:[NSString stringWithFormat:@"%s",argv[1]] encoding:NSUTF8StringEncoding error:nil];
-  NSArray *lines = [src componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-  NSCharacterSet *whitespaces = [NSCharacterSet whitespaceCharacterSet];
-  
-  unsigned int v = 0;
-  for(int k=0; k<lines.count; k++) {
-    NSArray *arr = [lines[k] componentsSeparatedByCharactersInSet:whitespaces];
-    if([arr count]>0&&[arr[0] isEqualToString:@"v"]&&[arr count]>=4) v++;
+  for(int n=0; n<v->size()/3; n++) {
+    vit[n].P() = vcg::Point3f(
+      (*v)[n*3+0],
+      (*v)[n*3+1],
+      (*v)[n*3+2]
+    );
   }
   
-  MyMesh::VertexIterator vit = vcg::tri::Allocator<MyMesh>::AddVertices(mesh,v);
-  NSLog(@"v = %d",v);
-  
-  unsigned int index = 0;
-  
-  for(int k=0; k<lines.count; k++) {
-    NSArray *arr = [lines[k] componentsSeparatedByCharactersInSet:whitespaces];
-    if([arr count]>0) {
-      if([arr[0] isEqualToString:@"v"]&&[arr count]>=4) {
-        vit[index++].P() = vcg::Point3f(
-          [arr[1] doubleValue],
-          [arr[2] doubleValue],
-          [arr[3] doubleValue]
-        );
-      }
-      else if([arr[0] isEqualToString:@"f"]&&[arr count]==4) {
-        vcg::tri::Allocator<MyMesh>::AddFace(
-          mesh,
-          &vit[(unsigned int)[[arr[1] componentsSeparatedByString:@"/"][0] intValue]-1],
-          &vit[(unsigned int)[[arr[2] componentsSeparatedByString:@"/"][0] intValue]-1],
-          &vit[(unsigned int)[[arr[3] componentsSeparatedByString:@"/"][0] intValue]-1]
-        );
-      }
-    }
+  for(int n=0; n<f->size()/3; n++) {
+    vcg::tri::Allocator<MyMesh>::AddFace(
+      mesh,
+      &vit[(*f)[n*3+0]],
+      &vit[(*f)[n*3+1]],
+      &vit[(*f)[n*3+2]]
+    );
   }
   
   printf("mesh loaded %d %d \n",mesh.vn,mesh.fn);
-  int TargetFaceNum=mesh.fn*std::clamp(atof(argv[3]),0.1,1.0);
   
   double TargetError = std::numeric_limits<double>::max();
   
@@ -137,29 +94,29 @@ int main(int argc, char *argv[]) {
   qparams.UseVertexWeight = false;
   
   if(CleaningFlag) {
-      int dup = vcg::tri::Clean<MyMesh>::RemoveDuplicateVertex(mesh);
-      int unref = vcg::tri::Clean<MyMesh>::RemoveUnreferencedVertex(mesh);
-      printf("Removed %i duplicate and %i unreferenced vertices from mesh \n",dup,unref);
+    int dup = vcg::tri::Clean<MyMesh>::RemoveDuplicateVertex(mesh);
+    int unref = vcg::tri::Clean<MyMesh>::RemoveUnreferencedVertex(mesh);
+    printf("Removed %i duplicate and %i unreferenced vertices from mesh \n",dup,unref);
   }
   
   printf("reducing it to %i\n",TargetFaceNum);
-
+  
   vcg::tri::UpdateBounding<MyMesh>::Box(mesh);
-
+  
   // decimator initialization
   vcg::LocalOptimization<MyMesh> DeciSession(mesh,&qparams);
-
+  
   int t1 = clock();
   DeciSession.Init<MyTriEdgeCollapse>();
   int t2 = clock();
   printf("Initial Heap Size %i\n",int(DeciSession.h.size()));
-
+  
   DeciSession.SetTargetSimplices(TargetFaceNum);
   DeciSession.SetTimeBudget(0.1f); // this allows updating the progress bar 10 time for sec...
   //DeciSession.SetTargetOperations(100000);
-
+  
   if(TargetError<std::numeric_limits<float>::max()) DeciSession.SetTargetMetric(TargetError);
-
+  
   while(DeciSession.DoOptimization()&&mesh.fn>TargetFaceNum&&DeciSession.currMetric<TargetError) {
     printf("Current Mesh size %7i heap sz %9i err %9g \n",mesh.fn, int(DeciSession.h.size()),DeciSession.currMetric);
   }
@@ -167,37 +124,71 @@ int main(int argc, char *argv[]) {
   int t3 = clock();
   printf("mesh %d %d Error %g \n",mesh.vn,mesh.fn,DeciSession.currMetric);
   printf("Completed in (%5.3f+%5.3f) sec\n",float(t2-t1)/CLOCKS_PER_SEC,float(t3-t2)/CLOCKS_PER_SEC);
-      
-  NSMutableString *obj = [NSMutableString stringWithString:@""];
-  //[obj appendString:@"mtllib mesh.mtl\n"];
-  //[obj appendString:@"usemtl mesh\n"];
+  
+  v->clear();
+  f->clear();
   
   unsigned int num = 0;
   std::vector<int> indices(mesh.vert.size());
-  
   for(unsigned int n=0; n<mesh.vert.size(); n++) {
     if(!mesh.vert[n].IsD()) {
       indices[n]=num++;
-      [obj appendString:[NSString stringWithFormat:@"v %0.7f %0.7f %0.7f\n",
-        mesh.vert[n].P()[0],
-        mesh.vert[n].P()[1],
-        mesh.vert[n].P()[2]
-      ]];
+      v->push_back(mesh.vert[n].P()[0]);
+      v->push_back(mesh.vert[n].P()[1]);
+      v->push_back(mesh.vert[n].P()[2]);
     }
   }
-  
+
   for(unsigned int n=0; n<mesh.face.size(); n++) {
     if(!mesh.face[n].IsD()) {
       if(mesh.face[n].VN()==3) {
-        [obj appendString:[NSString stringWithFormat:@"f %d %d %d\n",
-          indices[vcg::tri::Index(mesh,mesh.face[n].V(0))]+1,
-          indices[vcg::tri::Index(mesh,mesh.face[n].V(1))]+1,
-          indices[vcg::tri::Index(mesh,mesh.face[n].V(2))]+1
-        ]];
+        f->push_back(indices[vcg::tri::Index(mesh,mesh.face[n].V(0))]);
+        f->push_back(indices[vcg::tri::Index(mesh,mesh.face[n].V(1))]);
+        f->push_back(indices[vcg::tri::Index(mesh,mesh.face[n].V(2))]);
+      }
+    }
+  }  
+}
+
+int main(int argc, char *argv[]) {
+  
+  if(argc<3) {
+    printf("Usage: tridecimator fileIn fileOut ratio\n");
+    return -1;
+  }
+
+  NSString *src = [NSString stringWithContentsOfFile:[NSString stringWithFormat:@"%s",argv[1]] encoding:NSUTF8StringEncoding error:nil];
+  NSArray *lines = [src componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+  NSCharacterSet *whitespaces = [NSCharacterSet whitespaceCharacterSet];
+  
+  std::vector<float> v;
+  std::vector<int> f;
+  
+  for(int k=0; k<lines.count; k++) {
+    NSArray *arr = [lines[k] componentsSeparatedByCharactersInSet:whitespaces];
+    if([arr count]>0) {
+      if([arr[0] isEqualToString:@"v"]&&[arr count]>=4) {
+        v.push_back([arr[1] doubleValue]);
+        v.push_back([arr[2] doubleValue]);
+        v.push_back([arr[3] doubleValue]);
+      }
+      else if([arr[0] isEqualToString:@"f"]&&[arr count]==4) {
+        f.push_back([arr[1] doubleValue]-1);
+        f.push_back([arr[2] doubleValue]-1);
+        f.push_back([arr[3] doubleValue]-1);
       }
     }
   }
-  
+
+  tridecimator(&v,&f,(f.size()/3.0)*std::clamp(atof(argv[3]),0.1,1.0));
+
+  NSMutableString *obj = [NSMutableString stringWithString:@""];
+  for(unsigned int n=0; n<v.size()/3; n++) {
+      [obj appendString:[NSString stringWithFormat:@"v %0.7f %0.7f %0.7f\n",v[n*3+0],v[n*3+1],v[n*3+2]]];
+  }
+  for(unsigned int n=0; n<f.size()/3; n++) {
+    [obj appendString:[NSString stringWithFormat:@"f %d %d %d\n",f[n*3+0]+1,f[n*3+1]+1,f[n*3+2]+1]];
+  }
   [obj writeToFile:[NSString stringWithFormat:@"%s",argv[2]] atomically:YES encoding:NSUTF8StringEncoding error:nil];
   
   return 0;
