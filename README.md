@@ -10,4 +10,4 @@ GNU General Public License v3.0
 
 `./tridecimator src.obj dst.obj ratio`
 
-ratio is between 0.1 and 1.
+ratio is between 0.1 and 1.0
