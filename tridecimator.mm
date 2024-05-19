@@ -1,3 +1,5 @@
+const bool VERBOSE = false;
+
 #import <Cocoa/Cocoa.h>
 #import "tridecimator.h"
 
@@ -75,7 +77,7 @@ void tridecimator(std::vector<float> *v, std::vector<int> *f, NSString *params) 
     
     unsigned int TargetFaceNum = f->size()*ratio;
     
-    printf("mesh loaded %d %d \n",mesh.vn,mesh.fn);
+    if(VERBOSE) printf("mesh loaded %d %d \n",mesh.vn,mesh.fn);
     
     double TargetError = std::numeric_limits<double>::max();
     
@@ -110,10 +112,10 @@ void tridecimator(std::vector<float> *v, std::vector<int> *f, NSString *params) 
     if(CleaningFlag) {
         int dup = vcg::tri::Clean<MyMesh>::RemoveDuplicateVertex(mesh);
         int unref = vcg::tri::Clean<MyMesh>::RemoveUnreferencedVertex(mesh);
-        printf("Removed %i duplicate and %i unreferenced vertices from mesh \n",dup,unref);
+        if(VERBOSE) printf("Removed %i duplicate and %i unreferenced vertices from mesh \n",dup,unref);
     }
     
-    printf("reducing it to %i\n",TargetFaceNum);
+    if(VERBOSE) printf("reducing it to %i\n",TargetFaceNum);
     
     vcg::tri::UpdateBounding<MyMesh>::Box(mesh);
     
@@ -123,7 +125,7 @@ void tridecimator(std::vector<float> *v, std::vector<int> *f, NSString *params) 
     int t1 = clock();
     DeciSession.Init<MyTriEdgeCollapse>();
     int t2 = clock();
-    printf("Initial Heap Size %i\n",int(DeciSession.h.size()));
+    if(VERBOSE) printf("Initial Heap Size %i\n",int(DeciSession.h.size()));
     
     DeciSession.SetTargetSimplices(TargetFaceNum);
     DeciSession.SetTimeBudget(0.1f); // this allows updating the progress bar 10 time for sec...
@@ -132,12 +134,12 @@ void tridecimator(std::vector<float> *v, std::vector<int> *f, NSString *params) 
     if(TargetError<std::numeric_limits<float>::max()) DeciSession.SetTargetMetric(TargetError);
     
     while(DeciSession.DoOptimization()&&mesh.fn>TargetFaceNum&&DeciSession.currMetric<TargetError) {
-        printf("Current Mesh size %7i heap sz %9i err %9g \n",mesh.fn, int(DeciSession.h.size()),DeciSession.currMetric);
+        if(VERBOSE) printf("Current Mesh size %7i heap sz %9i err %9g \n",mesh.fn, int(DeciSession.h.size()),DeciSession.currMetric);
     }
     
     int t3 = clock();
-    printf("mesh %d %d Error %g \n",mesh.vn,mesh.fn,DeciSession.currMetric);
-    printf("Completed in (%5.3f+%5.3f) sec\n",float(t2-t1)/CLOCKS_PER_SEC,float(t3-t2)/CLOCKS_PER_SEC);
+    if(VERBOSE) printf("mesh %d %d Error %g \n",mesh.vn,mesh.fn,DeciSession.currMetric);
+    if(VERBOSE) printf("Completed in (%5.3f+%5.3f) sec\n",float(t2-t1)/CLOCKS_PER_SEC,float(t3-t2)/CLOCKS_PER_SEC);
     
     v->clear();
     f->clear();
