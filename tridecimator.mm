@@ -3,18 +3,14 @@
 // stuff to define the mesh
 #import <vcg/complex/complex.h>
 
-// io
-#import <wrap/io_trimesh/import.h>
-#import <wrap/io_trimesh/export_obj.h>
-
 // local optimization
 #import <vcg/complex/algorithms/local_optimization.h>
 #import <vcg/complex/algorithms/local_optimization/tri_edge_collapse_quadric.h>
 
-#include <vcg/complex/algorithms/clean.h>
+#import <vcg/complex/algorithms/clean.h>
 
-using namespace vcg;
-using namespace tri;
+#import <algorithm>
+
 
 /**********************************************************
 Mesh Classes for Quadric Edge collapse based simplification
@@ -36,32 +32,32 @@ class MyVertex;
 class MyEdge;
 class MyFace;
 
-struct MyUsedTypes: public UsedTypes<Use<MyVertex>::AsVertexType,Use<MyEdge>::AsEdgeType,Use<MyFace>::AsFaceType> {};
+struct MyUsedTypes: public vcg::UsedTypes<vcg::Use<MyVertex>::AsVertexType,vcg::Use<MyEdge>::AsEdgeType,vcg::Use<MyFace>::AsFaceType> {};
 
-class MyVertex : public Vertex<MyUsedTypes, vertex::VFAdj, vertex::Coord3f, vertex::Mark, vertex::Qualityf, vertex::BitFlags> {
+class MyVertex : public vcg::Vertex<MyUsedTypes, vcg::vertex::VFAdj, vcg::vertex::Coord3f, vcg::vertex::Mark, vcg::vertex::Qualityf, vcg::vertex::BitFlags> {
   public:
     vcg::math::Quadric<double> &Qd() { return q; }
   private:
-    math::Quadric<double> q;
+    vcg::math::Quadric<double> q;
 };
 
-class MyEdge : public Edge< MyUsedTypes> {};
+class MyEdge : public vcg::Edge< MyUsedTypes> {};
 
-typedef BasicVertexPair<MyVertex> VertexPair;
-class MyFace : public Face<MyUsedTypes, face::VFAdj, face::VertexRef, face::BitFlags> {};
+typedef vcg::tri::BasicVertexPair<MyVertex> VertexPair;
+class MyFace : public vcg::Face<MyUsedTypes, vcg::face::VFAdj, vcg::face::VertexRef, vcg::face::BitFlags> {};
 
 // the main mesh class
 class MyMesh : public vcg::tri::TriMesh<std::vector<MyVertex>,std::vector<MyFace>> {};
 
-class MyTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<MyMesh, VertexPair, MyTriEdgeCollapse, QInfoStandard<MyVertex>> {
+class MyTriEdgeCollapse: public vcg::tri::TriEdgeCollapseQuadric<MyMesh, VertexPair, MyTriEdgeCollapse, vcg::tri::QInfoStandard<MyVertex>> {
   public:
-    typedef  vcg::tri::TriEdgeCollapseQuadric<MyMesh, VertexPair, MyTriEdgeCollapse, QInfoStandard<MyVertex>> TECQ;
-    typedef  MyMesh::VertexType::EdgeType EdgeType;
-    inline MyTriEdgeCollapse(const VertexPair &p, int i, BaseParameterClass *pp) : TECQ(p,i,pp) {}
+    typedef vcg::tri::TriEdgeCollapseQuadric<MyMesh, VertexPair, MyTriEdgeCollapse, vcg::tri::QInfoStandard<MyVertex>> TECQ;
+    typedef MyMesh::VertexType::EdgeType EdgeType;
+    inline MyTriEdgeCollapse(const VertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp) {}
 };
 
 void Usage() {
-    printf("Usage: tridecimator fileIn fileOut face_num [opt]\n");
+    printf("Usage: tridecimator fileIn fileOut ratio\n");
     exit(-1);
 }
 
@@ -71,23 +67,50 @@ int main(int argc, char *argv[]) {
 
   MyMesh mesh;
   
-  int err = vcg::tri::io::Importer<MyMesh>::Open(mesh,argv[1]);
-  if(err) {
-    printf("Unable to open mesh %s : '%s'\n",argv[1],vcg::tri::io::Importer<MyMesh>::ErrorMsg(err));
-    exit(-1);
-  }
-  printf("mesh loaded %d %d \n",mesh.vn,mesh.fn);
+  NSString *src = [NSString stringWithContentsOfFile:[NSString stringWithFormat:@"%s",argv[1]] encoding:NSUTF8StringEncoding error:nil];
+  NSArray *lines = [src componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+  NSCharacterSet *whitespaces = [NSCharacterSet whitespaceCharacterSet];
   
-  float ratio = atof(argv[3]);
-  if(ratio>=1.0) ratio = 1.0;
-  else if(ratio<=0.1) ratio = 0.1;
-  int TargetFaceNum=mesh.fn*ratio;
+  unsigned int v = 0;
+  for(int k=0; k<lines.count; k++) {
+    NSArray *arr = [lines[k] componentsSeparatedByCharactersInSet:whitespaces];
+    if([arr count]>0&&[arr[0] isEqualToString:@"v"]&&[arr count]>=4) v++;
+  }
+  
+  MyMesh::VertexIterator vit = vcg::tri::Allocator<MyMesh>::AddVertices(mesh,v);
+  NSLog(@"v = %d",v);
+  
+  unsigned int index = 0;
+  
+  for(int k=0; k<lines.count; k++) {
+    NSArray *arr = [lines[k] componentsSeparatedByCharactersInSet:whitespaces];
+    if([arr count]>0) {
+      if([arr[0] isEqualToString:@"v"]&&[arr count]>=4) {
+        vit[index++].P() = vcg::Point3f(
+          [arr[1] doubleValue],
+          [arr[2] doubleValue],
+          [arr[3] doubleValue]
+        );
+      }
+      else if([arr[0] isEqualToString:@"f"]&&[arr count]==4) {
+        vcg::tri::Allocator<MyMesh>::AddFace(
+          mesh,
+          &vit[(unsigned int)[[arr[1] componentsSeparatedByString:@"/"][0] intValue]-1],
+          &vit[(unsigned int)[[arr[2] componentsSeparatedByString:@"/"][0] intValue]-1],
+          &vit[(unsigned int)[[arr[3] componentsSeparatedByString:@"/"][0] intValue]-1]
+        );
+      }
+    }
+  }
+  
+  printf("mesh loaded %d %d \n",mesh.vn,mesh.fn);
+  int TargetFaceNum=mesh.fn*std::clamp(atof(argv[3]),0.1,1.0);
   
   double TargetError = std::numeric_limits<double>::max();
   
   bool CleaningFlag = true;
   
-  TriEdgeCollapseQuadricParameter qparams;
+  vcg::tri::TriEdgeCollapseQuadricParameter qparams;
   qparams.BoundaryQuadricWeight = 0.500000;
   qparams.FastPreserveBoundary = false;
   qparams.AreaCheck = false;
@@ -114,8 +137,8 @@ int main(int argc, char *argv[]) {
   qparams.UseVertexWeight = false;
   
   if(CleaningFlag) {
-      int dup = tri::Clean<MyMesh>::RemoveDuplicateVertex(mesh);
-      int unref = tri::Clean<MyMesh>::RemoveUnreferencedVertex(mesh);
+      int dup = vcg::tri::Clean<MyMesh>::RemoveDuplicateVertex(mesh);
+      int unref = vcg::tri::Clean<MyMesh>::RemoveUnreferencedVertex(mesh);
       printf("Removed %i duplicate and %i unreferenced vertices from mesh \n",dup,unref);
   }
   
@@ -144,10 +167,38 @@ int main(int argc, char *argv[]) {
   int t3 = clock();
   printf("mesh %d %d Error %g \n",mesh.vn,mesh.fn,DeciSession.currMetric);
   printf("Completed in (%5.3f+%5.3f) sec\n",float(t2-t1)/CLOCKS_PER_SEC,float(t3-t2)/CLOCKS_PER_SEC);
-  unsigned int mask = 0;
-  mask|=vcg::tri::io::Mask::IOM_VERTCOORD;
-  mask|=vcg::tri::io::Mask::IOM_FACEINDEX;
-  vcg::tri::io::ExporterOBJ<MyMesh>::Save(mesh,argv[2],mask);
-    
+      
+  NSMutableString *obj = [NSMutableString stringWithString:@""];
+  //[obj appendString:@"mtllib mesh.mtl\n"];
+  //[obj appendString:@"usemtl mesh\n"];
+  
+  unsigned int num = 0;
+  std::vector<int> indices(mesh.vert.size());
+  
+  for(unsigned int n=0; n<mesh.vert.size(); n++) {
+    if(!mesh.vert[n].IsD()) {
+      indices[n]=num++;
+      [obj appendString:[NSString stringWithFormat:@"v %0.7f %0.7f %0.7f\n",
+        mesh.vert[n].P()[0],
+        mesh.vert[n].P()[1],
+        mesh.vert[n].P()[2]
+      ]];
+    }
+  }
+  
+  for(unsigned int n=0; n<mesh.face.size(); n++) {
+    if(!mesh.face[n].IsD()) {
+      if(mesh.face[n].VN()==3) {
+        [obj appendString:[NSString stringWithFormat:@"f %d %d %d\n",
+          indices[vcg::tri::Index(mesh,mesh.face[n].V(0))]+1,
+          indices[vcg::tri::Index(mesh,mesh.face[n].V(1))]+1,
+          indices[vcg::tri::Index(mesh,mesh.face[n].V(2))]+1
+        ]];
+      }
+    }
+  }
+  
+  [obj writeToFile:@"./dst.obj" atomically:YES encoding:NSUTF8StringEncoding error:nil];
+  
   return 0;
 }
