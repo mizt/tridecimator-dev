@@ -44,8 +44,6 @@ namespace FileManager {
   }
 }
 
-
-
 typedef int (*FILTER)(std::vector<float> *, std::vector<int> *, NSString *);
 
 int main(int argc, char *argv[]) {
@@ -78,8 +76,7 @@ int main(int argc, char *argv[]) {
   CFStringRef pluginFunctionName = (__bridge CFStringRef)(@"tridecimator");
   NSString *pluginParams = @"{\"ratio\":0.8}";
   
-  if(FileManager::exists(pluginPath)) {
-    
+  if(pluginPath&&FileManager::exists(pluginPath)) {
     while(pluginPass--) {
       //NSLog(@"%d",pluginPass);
       CFBundleRef bundle = CFBundleCreate(kCFAllocatorDefault,(CFURLRef)[NSURL fileURLWithPath:pluginPath]);
