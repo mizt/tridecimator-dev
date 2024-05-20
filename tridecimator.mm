@@ -45,7 +45,7 @@ public:
     inline MyTriEdgeCollapse(const VertexPair &p, int i, vcg::BaseParameterClass *pp) : TECQ(p,i,pp) {}
 };
 
-void tridecimator(std::vector<float> *v, std::vector<int> *f, NSString *params) {
+void tridecimator(std::vector<float> *v, std::vector<unsigned int> *f, NSString *params) {
     
     MyMesh mesh;
     MyMesh::VertexIterator vit = vcg::tri::Allocator<MyMesh>::AddVertices(mesh,v->size()/3);

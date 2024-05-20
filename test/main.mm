@@ -44,7 +44,7 @@ namespace FileManager {
   }
 }
 
-typedef int (*FILTER)(std::vector<float> *, std::vector<int> *, NSString *);
+typedef void (*FILTER)(std::vector<float> *, std::vector<unsigned int> *, NSString *);
 
 int main(int argc, char *argv[]) {
   
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
   NSCharacterSet *whitespaces = [NSCharacterSet whitespaceCharacterSet];
   
   std::vector<float> v;
-  std::vector<int> f;
+  std::vector<unsigned int> f;
   
   for(int k=0; k<lines.count; k++) {
     NSArray *arr = [lines[k] componentsSeparatedByCharactersInSet:whitespaces];

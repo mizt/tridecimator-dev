@@ -2,6 +2,6 @@
 #import <vector>
 
 extern "C" {
-    void tridecimator(std::vector<float> *v, std::vector<int> *f, NSString *params);
+    void tridecimator(std::vector<float> *v, std::vector<unsigned int> *f, NSString *params);
 }
     
